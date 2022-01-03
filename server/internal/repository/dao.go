@@ -2,6 +2,7 @@ package repository
 
 type DAO interface {
 	NewUserQuery() UserQuery
+	NewEventQuery() EventQuery
 }
 
 type TempType string
@@ -22,4 +23,8 @@ func NewDB() (TempType, error) {
 
 func (d *dao) NewUserQuery() UserQuery {
 	return &userQuery{}
+}
+
+func (d *dao) NewEventQuery() EventQuery {
+	return &eventQuery{}
 }

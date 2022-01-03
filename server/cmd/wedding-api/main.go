@@ -11,8 +11,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-
-
 func main() {
 	db, err := repository.NewDB()
 	if err != nil {
@@ -22,13 +20,18 @@ func main() {
 	// Register all services
 	dao := repository.NewDAO(db)
 	userService := service.NewUserService(dao)
+	eventService := service.NewEventService(dao)
 
 	// Register the handlers
-	handlers := handler.MakeHandlers(&userService)
+	handlers := handler.MakeHandlers(
+		&userService, 
+		&eventService,
+	)
 
 	// Start the HTTP server
 	router := mux.NewRouter()
 	router.HandleFunc("/api/user/{userId}", handlers.UserHandler)
+	router.HandleFunc("/api/event/{eventId}", handlers.EventHandler)
 
 	srv := &http.Server{
 		Handler: router,
