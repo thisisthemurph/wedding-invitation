@@ -30,6 +30,7 @@ func main() {
 
 	// Start the HTTP server
 	router := mux.NewRouter()
+	router.HandleFunc("/api/user", handlers.UserHandler).Methods(http.MethodPost)
 	router.HandleFunc("/api/user/{userId}", handlers.UserHandler)
 	router.HandleFunc("/api/event/{eventId}", handlers.EventHandler)
 

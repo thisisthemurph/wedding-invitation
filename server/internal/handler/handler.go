@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"wedding_api/internal/service"
 )
@@ -36,18 +35,17 @@ func MakeHttpResponse(w http.ResponseWriter, result string, status int) {
 	fmt.Fprint(w, result)
 }
 
-type httpError struct {
+type HttpError struct {
 	StatusCode int    `json:"statusCode"`
 	Message    string `json:"errorMessage"`
 }
 
-func MakeHttpError(statusCode int, message string) string {
-	e := httpError{statusCode, message}
-	data, err := json.Marshal(e)
-
-	if (err != nil) {
-		log.Fatalln(err)
-	}
-
+func (h *HttpError) String() (string) {
+	data, _ := json.Marshal(h)
 	return string(data)
+}
+
+func MakeHttpError(statusCode int, message string) (string, int) {
+	httpErr := HttpError{statusCode, message}
+	return httpErr.String(), statusCode
 }

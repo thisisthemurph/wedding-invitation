@@ -37,17 +37,17 @@ func getEvent(eventService service.EventService, r *http.Request) (string, int) 
 	if err != nil {
 		status := http.StatusNotFound
 		message := fmt.Sprintf("Event with ID %v could not be found.", eventId)
-		return MakeHttpError(status, message), status
+		return MakeHttpError(status, message)
 	}
 
-	return eventToJson(event), http.StatusOK
+	return eventToJson(event)
 }
 
-func eventToJson(event *datastruct.Event) string {
+func eventToJson(event *datastruct.Event) (string, int) {
 	data, err := json.Marshal(event)
 	if (err != nil) {
 		return MakeHttpError(500, "Unable to process event data.")
 	}
 
-	return string(data)
+	return string(data), http.StatusOK
 }
