@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"wedding_api/internal/datastruct"
+	"wedding_api/internal/httputils"
 	"wedding_api/internal/service"
 
 	"github.com/gorilla/mux"
@@ -28,24 +29,25 @@ func (u *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 		status = http.StatusBadGateway
 		break
 	}
-
-	MakeHttpResponse(w, result, status)
+	
+	httputils.MakeHttpResponse(w, result, status)
 }
 
 func createUser(userService service.UserService, r *http.Request) (string, int) {
 	user, err := bodyToUser(r.Body)
 	if err != nil {
 		status := http.StatusNotFound
-		return MakeHttpError(status, err.Error())
+		return httputils.MakeHttpError(status, err.Error())
 	}
 
 	// Insert the user into the dtabase
-	insertErr := userService.CreateUser(user)
+	person, insertErr := userService.CreateUser(user)
 	if insertErr != nil {
-		return MakeHttpError(http.StatusBadRequest, err.Error())
+		return httputils.MakeHttpError(http.StatusBadRequest, insertErr.Error())
 	}
 
-	return "", http.StatusCreated
+	json, _ := personToJson(person)
+	return json, http.StatusCreated
 }
 
 func getUser(userService service.UserService, r *http.Request) (string, int) {
@@ -57,10 +59,11 @@ func getUser(userService service.UserService, r *http.Request) (string, int) {
 	if err != nil {
 		status := http.StatusNotFound
 		message := fmt.Sprintf("User with ID %v could not be found.", userId)
-		return MakeHttpError(status, message)
+		return httputils.MakeHttpError(status, message)
 	}
 
-	return personToJson(user)
+	json, _ := personToJson(user)
+	return json, http.StatusOK
 }
 
 // Converts a HTTP Body object into a Person object
@@ -73,11 +76,11 @@ func bodyToUser(body io.ReadCloser) (person datastruct.Person, err error) {
 }
 
 // Converts a Person object into a JSON object
-func personToJson(user *datastruct.Person) (string, int) {
+func personToJson(user *datastruct.Person) (string, error) {
 	data, err := json.Marshal(user)
 	if (err != nil) {
-		return MakeHttpError(500, "Unable to process user data.")
+		return "", err
 	}
 
-	return string(data), http.StatusOK
+	return string(data), nil
 }

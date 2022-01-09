@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"wedding_api/internal/datastruct"
+	"wedding_api/internal/httputils"
 	"wedding_api/internal/service"
 
 	"github.com/gorilla/mux"
@@ -25,7 +26,7 @@ func (h *Handler) EventHandler(w http.ResponseWriter, r *http.Request) {
 		break
 	}
 
-	MakeHttpResponse(w, result, status)
+	httputils.MakeHttpResponse(w, result, status)
 }
 
 func getEvent(eventService service.EventService, r *http.Request) (string, int) {
@@ -37,7 +38,7 @@ func getEvent(eventService service.EventService, r *http.Request) (string, int) 
 	if err != nil {
 		status := http.StatusNotFound
 		message := fmt.Sprintf("Event with ID %v could not be found.", eventId)
-		return MakeHttpError(status, message)
+		return httputils.MakeHttpError(status, message)
 	}
 
 	return eventToJson(event)
@@ -46,7 +47,7 @@ func getEvent(eventService service.EventService, r *http.Request) (string, int) 
 func eventToJson(event *datastruct.Event) (string, int) {
 	data, err := json.Marshal(event)
 	if (err != nil) {
-		return MakeHttpError(500, "Unable to process event data.")
+		return httputils.MakeHttpError(500, "Unable to process event data.")
 	}
 
 	return string(data), http.StatusOK
