@@ -1,8 +1,11 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	"wedding_api/internal/config"
+	"wedding_api/internal/repository/models"
 
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
@@ -23,31 +26,40 @@ func NewDAO(db *bun.DB) DAO {
 	return &dao{}
 }
 
-func makePostgresConnectionString() string {
-	uname    := "postgres"
-	password := "GreenAli3n2001"
-	host     := "localhost"
-	port	 := "5432"
-	name     := "wedding"
-
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", uname, password, host, port, name)
+func makePostgresConnectionString(confif config.Config) string {
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", 
+		confif.DatabaseUsername,
+		confif.DatabasePassword, 
+		confif.DatabaseHost, 
+		confif.DatabasePort, 
+		confif.DatabaseName,
+	)
 }
 
-func NewDB() (*bun.DB, error) {
-	dsn := makePostgresConnectionString()
+func makeDB(config config.Config) (*bun.DB, error) {
+	dsn := makePostgresConnectionString(config)
 	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
 
 	DB := bun.NewDB(sqldb, pgdialect.New())
 
-	// Create the tables
-	// ctx := context.Background()
-	// DB.NewCreateTable().Model((*models.User)(nil)).Exec(ctx)
-	// DB.NewCreateTable().Model((*models.Event)(nil)).Exec(ctx)
-
-	// fmt.Println("We have created the table")
-	// fmt.Println(DB)
-
 	return DB, nil
+}
+
+func NewDB() (*bun.DB, error) {
+	config := config.LoadConfig()
+	return makeDB(config)
+}
+
+func NewDevDB() (*bun.DB, error) {
+	config := config.LoadDevConfig()
+	DB, err := makeDB(config)
+	
+	// Drop the tables and create them again each time
+	ctx := context.Background()
+	DB.NewDropTable().Model((*models.User)(nil)).Exec(ctx)
+	DB.NewCreateTable().Model((*models.User)(nil)).Exec(ctx)
+
+	return DB, err
 }
 
 func (d *dao) NewUserQuery() UserQuery {

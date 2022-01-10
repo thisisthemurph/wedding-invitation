@@ -13,6 +13,7 @@ type UserQuery interface {
 	CreateUser(user datastruct.Person) (*models.User, error)
 	GetUserById(userId int64) (*models.User, error)
 	EmailExists(email string) (bool)
+	DeleteUserById(userId int64) error
 }
 
 type userQuery struct{}
@@ -73,4 +74,10 @@ func (u * userQuery) EmailExists(email string) bool {
 	userModel := new(models.User)
 	exists, _ := DB.NewSelect().Model(userModel).Where("email = ?", email).Limit(1).Exists(context.Background())
 	return exists
+}
+
+func (u *userQuery) DeleteUserById(userId int64) error {
+	userModel := new(models.User)
+	_, err := DB.NewDelete().Model(userModel).Where("id = ?", userId).Exec(context.Background())
+	return err
 }

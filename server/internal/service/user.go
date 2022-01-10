@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"wedding_api/internal/datastruct"
 	"wedding_api/internal/repository"
 )
@@ -8,6 +9,7 @@ import (
 type UserService interface {
 	CreateUser(user datastruct.Person) (*datastruct.Person, error)
 	GetUserById(userId int64) (*datastruct.Person, error)
+	DeleteUserById(userId int64) (*datastruct.Person, error)
 }
 
 type userService struct {
@@ -47,4 +49,20 @@ func (u *userService) GetUserById(userId int64) (*datastruct.Person, error) {
 	}
 
 	return person, nil
+}
+
+func (u *userService) DeleteUserById(userId int64) (*datastruct.Person, error) {
+	user, err := u.dao.NewUserQuery().GetUserById(userId)
+	if err != nil {
+		return nil, errors.New("User with given ID does not exist.")
+	}
+
+	err = u.dao.NewUserQuery().DeleteUserById(userId)
+	person := &datastruct.Person{
+		ID: user.ID,
+		Name: user.Name,
+		Email: user.Email,
+	}
+
+	return person, err
 }

@@ -24,6 +24,9 @@ func (u *Handler) UserHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		result, status = createUser(u.userService, r)
 		break
+	case http.MethodDelete:
+		result, status = deleteUser(u.userService, r)
+		break
 	default:
 		result = fmt.Sprintf("Bad method %s", r.Method)
 		status = http.StatusBadGateway
@@ -56,6 +59,21 @@ func getUser(userService service.UserService, r *http.Request) (string, int) {
 
 	user, err := userService.GetUserById(userId)
 
+	if err != nil {
+		status := http.StatusNotFound
+		message := fmt.Sprintf("User with ID %v could not be found.", userId)
+		return httputils.MakeHttpError(status, message)
+	}
+
+	json, _ := personToJson(user)
+	return json, http.StatusOK
+}
+
+func deleteUser(userService service.UserService, r *http.Request) (string, int) {
+	params := mux.Vars(r)
+	userId, _ := strconv.ParseInt(params["userId"], 10, 64)
+
+	user, err := userService.DeleteUserById(userId)
 	if err != nil {
 		status := http.StatusNotFound
 		message := fmt.Sprintf("User with ID %v could not be found.", userId)
